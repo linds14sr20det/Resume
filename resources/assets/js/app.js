@@ -5,8 +5,8 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
-require('./bootstrap');
-require('./jquery');
+//require('./bootstrap');
+//require('./jquery');
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -14,8 +14,17 @@ require('./jquery');
  * the application, or feel free to tweak this setup for your needs.
  */
 
-Vue.component('example', require('./components/Example.vue'));
+import Vue from 'vue';
+import NavBar from './components/NavBar.vue';
+import HomeView from './components/HomeView.vue';
+import AboutView from './components/AboutView.vue';
 
-const app = new Vue({
-    el: 'body'
+new Vue({
+    el: 'body',
+
+    components: {
+        NavBar,
+        HomeView,
+        AboutView
+    }
 });
