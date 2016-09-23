@@ -26,7 +26,7 @@
                 <ul class="nav navbar-nav">
                     <li><a v-on:click="changePage('home-view')">Home</a></li>
                     <li><a v-on:click="changePage('about-view')">About</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a v-on:click="changePage('coding-challenge-view')">Coding Challenge</a></li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">BrowserGames <span class="caret"></span></a>
                         <ul class="dropdown-menu">

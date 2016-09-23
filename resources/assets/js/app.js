@@ -17,16 +17,18 @@ require('./jquery');
 import Vue from 'vue';
 import HomeView from './components/HomeView.vue';
 import AboutView from './components/AboutView.vue';
+import CodingChallengeView from './components/CodingChallengeView.vue';
 
 var app = new Vue({
     el: 'body',
 
     components: {
         HomeView,
-        AboutView
+        AboutView,
+        CodingChallengeView
     },
     data: {
-        currentView: 'home-view'
+        currentView: 'coding-challenge-view'//'home-view'
     },
     methods: {
         changePage: function (newView) {
