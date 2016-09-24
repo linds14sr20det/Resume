@@ -41200,17 +41200,54 @@ if (module.hot) {(function () {  module.hot.accept()
 })()}
 },{"vue":7,"vue-hot-reload-api":5}],12:[function(require,module,exports){
 var __vueify_insert__ = require("vueify/lib/insert-css")
-var __vueify_style__ = __vueify_insert__.insert("\npre {\n    text-align: left;\n}\n\n.jumbotron {\n    padding-bottom: 0px!important;\n}\n")
-"use strict";
+var __vueify_style__ = __vueify_insert__.insert("\npre {\n    text-align: left;\n}\n\n.jumbotron {\n    padding-bottom: 0!important;\n}\n")
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
 
-var Calc = function Calc() {};
+function Calc() {
+    this.equationArr = [];
+    this.answer = '';
+    this.calculate = function () {
+        if (this.equationArr.length != 3) {
+            return this;
+        }
+        var solver = new Function('return ' + this.equationArr[0] + ' ' + this.equationArr[1] + ' ' + this.equationArr[2] + ';');
+        this.answer = solver();
+    };
+}
 
-Calc.prototype.new = new Calc();
+Object.defineProperty(Calc.prototype, 'new', {
+    get: function get() {
+        return this;
+    }
+});
+
+Object.defineProperty(Calc.prototype, 'one', {
+    get: function get() {
+        this.equationArr.push(1);
+        this.calculate();
+        return this;
+    }
+});
+
+Object.defineProperty(Calc.prototype, 'two', {
+    get: function get() {
+        this.equationArr.push(2);
+        this.calculate();
+        return this;
+    }
+});
+
+Object.defineProperty(Calc.prototype, 'plus', {
+    get: function get() {
+        this.equationArr.push("+");
+        return this;
+    }
+});
 
 exports.default = {
     props: {
@@ -41224,7 +41261,8 @@ exports.default = {
         },
         runCode: function runCode() {
             this.runA1 = true;
-            console.log(Calc.new.one.plus.two);
+            var calc = new Calc();
+            console.log(calc.new.one.plus.two);
         }
     }
 };
@@ -41235,7 +41273,7 @@ if (module.hot) {(function () {  module.hot.accept()
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
   module.hot.dispose(function () {
-    __vueify_insert__.cache["\npre {\n    text-align: left;\n}\n\n.jumbotron {\n    padding-bottom: 0px!important;\n}\n"] = false
+    __vueify_insert__.cache["\npre {\n    text-align: left;\n}\n\n.jumbotron {\n    padding-bottom: 0!important;\n}\n"] = false
     document.head.removeChild(__vueify_style__)
   })
   if (!module.hot.data) {

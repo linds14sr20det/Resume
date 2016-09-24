@@ -82,16 +82,52 @@
     }
 
     .jumbotron {
-        padding-bottom: 0px!important;
+        padding-bottom: 0!important;
     }
 </style>
 
 <script>
-    var Calc = function () {
 
-    };
+    function Calc(){
+        this.equationArr = [];
+        this.answer = '';
+        this.calculate = function () {
+            if(this.equationArr.length != 3) {
+                return this;
+            }
+            var solver = new Function('return ' + this.equationArr[0] + ' ' + this.equationArr[1] + ' ' + this.equationArr[2] + ';');
+            this.answer = solver();
+        };
+    }
 
-    Calc.prototype.new = new Calc();
+    Object.defineProperty(Calc.prototype, 'new', {
+        get: function() {
+            return this;
+        }
+    });
+
+    Object.defineProperty(Calc.prototype, 'one', {
+        get: function() {
+            this.equationArr.push(1);
+            this.calculate();
+            return this;
+        }
+    });
+
+    Object.defineProperty(Calc.prototype, 'two', {
+        get: function() {
+            this.equationArr.push(2);
+            this.calculate();
+            return this;
+        }
+    });
+
+    Object.defineProperty(Calc.prototype, 'plus', {
+        get: function() {
+            this.equationArr.push("+");
+            return this;
+        }
+    });
 
     export default {
         props: {
@@ -105,7 +141,8 @@
             },
             runCode: function() {
                 this.runA1 = true;
-                console.log(Calc.new.one.plus.two);
+                var calc = new Calc();
+                console.log(calc.new.one.plus.two);
             },
         }
     };
