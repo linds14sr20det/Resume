@@ -41208,66 +41208,166 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 
-function Calc() {
-    this.equationArr = [];
-    this.answer = '';
-    this.calculate = function () {
-        if (this.equationArr.length != 3) {
-            return this;
+function recover_secret(triplets) {
+
+    //Construct tree graph
+    var letterGraph = new Graph();
+    triplets.forEach(function (triplet) {
+        for (var i = 0; i < triplet.length - 1; i++) {
+            letterGraph.addEdge(triplet[i], triplet[i + 1]);
         }
-        var solver = new Function('return ' + this.equationArr[0] + ' ' + this.equationArr[1] + ' ' + this.equationArr[2] + ';');
-        this.answer = solver();
-    };
+    });
+    //letterGraph.printNodes();
+
+    //Find longest path starting from the back of the string, as last letter will have no children
+    var starting_node = '';
+    letterGraph.node_list.forEach(function (node) {
+        if (!node.edge_list_children.length) {
+            starting_node = node;
+        }
+    });
+
+    //Now we have the tree root, we can do a "reverse" dfs
+    //Our "goal" is the path with the length equal to the number of nodes in our graph
+    //We can make this recursive for fun
+    var path = [];
+    var longestPath = dfs(letterGraph, starting_node, path);
+
+    return longestPath.join('');
 }
 
-Object.defineProperty(Calc.prototype, 'new', {
-    get: function get() {
-        return this;
+Array.prototype.containsNode = function (name) {
+    var i = this.length;
+    while (i--) {
+        if (this[i].name === name) {
+            return true;
+        }
     }
-});
+    return false;
+};
 
-Object.defineProperty(Calc.prototype, 'one', {
-    get: function get() {
-        this.equationArr.push(1);
-        this.calculate();
-        return this;
+Array.prototype.contains = function (name) {
+    var i = this.length;
+    while (i--) {
+        if (this[i] === name) {
+            return true;
+        }
     }
-});
+    return false;
+};
 
-Object.defineProperty(Calc.prototype, 'two', {
-    get: function get() {
-        this.equationArr.push(2);
-        this.calculate();
-        return this;
-    }
-});
+var Node = function Node(name) {
+    this.edge_list_children = [];
+    this.edge_list_parents = [];
+    this.name = name;
+};
 
-Object.defineProperty(Calc.prototype, 'plus', {
-    get: function get() {
-        this.equationArr.push("+");
-        return this;
+Node.prototype.addChildEdge = function (end) {
+    this.edge_list_children.push(end);
+};
+Node.prototype.addParentEdge = function (start) {
+    this.edge_list_parents.push(start);
+};
+
+var Graph = function Graph() {
+    this.node_list = [];
+};
+
+//We want a one way graph, and each letter only appears once
+Graph.prototype.addEdge = function (start, end) {
+    var first = this.node_list.containsNode(start);
+    var second = this.node_list.containsNode(end);
+    if (first) {
+        //get start node
+        var i = this.node_list.length;
+        while (i--) {
+            if (this.node_list[i].name === start && !this.node_list[i].edge_list_children.contains(end)) {
+                this.node_list[i].addChildEdge(end);
+                break;
+            }
+        }
     }
-});
+    if (second) {
+        //get start node
+        var i = this.node_list.length;
+        while (i--) {
+            if (this.node_list[i].name === end && !this.node_list[i].edge_list_parents.contains(start)) {
+                this.node_list[i].addParentEdge(start);
+                break;
+            }
+        }
+    }
+
+    if (!first || !second) {
+        if (!first) {
+            var node = new Node(start);
+            node.addChildEdge(end);
+            this.node_list.push(node);
+        }
+        if (!second) {
+            var node = new Node(end);
+            node.addParentEdge(start);
+            this.node_list.push(node);
+        }
+    }
+};
+
+Graph.prototype.printNodes = function () {
+    for (var i = 0; i < this.node_list.length; i++) {
+        console.log(this.node_list[i].name + ":");
+        console.log("parents: " + this.node_list[i].edge_list_parents);
+        console.log("children: " + this.node_list[i].edge_list_children);
+    }
+};
+
+function dfs(graph, node, path) {
+    path.push(node.name);
+    console.log("currently visiting: " + node.name);
+    console.log("path so far: " + path);
+    //We are at the bottom
+    if (node.edge_list_parents == 0) {
+        console.log('hit a dead end, it could be the solution');
+        return path;
+    } else {
+        node.edge_list_parents.forEach(function (parentName) {
+            var parentNode = null;
+            graph.node_list.forEach(function (nodeInstance) {
+                if (nodeInstance.name === parentName) {
+                    parentNode = nodeInstance;
+                }
+            });
+            dfs(graph, parentNode, path);
+        });
+    }
+}
 
 exports.default = {
     props: {
         showA1: { default: false },
-        runA1: { default: false }
+        showA2: { default: false },
+        runA2: { default: false }
     },
 
     methods: {
-        showCode: function showCode() {
-            this.showA1 = this.showA1 ? false : true;
+        showCode: function showCode(show) {
+            switch (show) {
+                case 1:
+                    this.showA1 = this.showA1 ? false : true;
+                    break;
+                case 2:
+                    this.showA2 = this.showA2 ? false : true;
+                    break;
+            }
         },
-        runCode: function runCode() {
-            this.runA1 = true;
-            var calc = new Calc();
-            console.log(calc.new.one.plus.two);
+        decipherTriplets: function decipherTriplets() {
+            secret_1 = "whatisup";
+            triplets_1 = [['t', 'u', 'p'], ['w', 'h', 'i'], ['t', 's', 'u'], ['a', 't', 's'], ['h', 'a', 'p'], ['t', 'i', 's'], ['w', 'h', 's']];
+            console.log(recover_secret(triplets_1));
         }
     }
 };
 if (module.exports.__esModule) module.exports = module.exports.default
-;(typeof module.exports === "function"? module.exports.options: module.exports).template = "\n<div class=\"container\" transition=\"fade\">\n    <div class=\"jumbotron\">\n        <h1>Coding Challenge Q's</h1>\n        <p class=\"lead\">Here's the latest coding interview questions I've been asked to solve.</p>\n    </div>\n    <div class=\"row\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8\">\n            <h3>Question 1:</h3>\n            <p>\n                The Kata is inspired by Calculating with Functions Kata for JavaScript.<br>\n                The goal is to implement simple calculator which uses fluent syntax:<br>\n            </p>\n            <pre>                    <code>\nCalc.new.one.plus.two # Should return 3\n\nCalc.new.five.minus.six # Should return ­1\n\nCalc.new.seven.times.two # Should return 14\n\nCalc.new.nine.divided_by.three # Should return 3\n                </code>\n            </pre>\n            <p>\n                There are only four operations that are supported (plus, minus, times, divided_by) and 10 digits (zero, one, two, three, four, five, six, seven, eight, nine).<br>\n                Each calculation consists of one operation only.\n            </p>\n        </div>\n    </div>\n    <div class=\"row\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8 text-center\">\n            <button class=\"btn btn-lg btn-success\" @click=\"showCode\" role=\"button\">Show My Answer!</button>\n        </div>\n    </div>\n\n\n    <div class=\"row\" v-show=\"showA1\" transition=\"fade\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8\">\n            <h3>Answer to Question 1:</h3>\n            <pre>                    <code>\nfunction Panel(element, canClose, closeHandler) {\n    this.element = element;\n    this.canClose = canClose;\n    this.closeHandler = function () { if (closeHandler) closeHandler() };\n}\n                </code>\n            </pre>\n        </div>\n    </div>\n\n\n    <div class=\"row\" v-show=\"showA1\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8 text-center\">\n            <button class=\"btn btn-lg btn-success\" @click=\"runCode\" role=\"button\">Run My Answer!</button>\n        </div>\n    </div>\n    <div class=\"row\" v-show=\"runA1\" transition=\"fade\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8\">\n            <h3>Output:</h3>\n            <pre>                    <code>\nOutput of Stuff\n                </code>\n            </pre>\n        </div>\n    </div>\n\n\n</div>\n"
+;(typeof module.exports === "function"? module.exports.options: module.exports).template = "\n    <div class=\"container\" transition=\"fade\">\n        <div class=\"jumbotron\">\n            <h1>Coding Challenge Q's</h1>\n            <p class=\"lead\">Here's the latest coding interview questions I've been asked to solve.</p>\n        </div>\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Question 1:</h3>\n                <p>\n                    The Kata is inspired by Calculating with Functions Kata for JavaScript.<br>\n                    The goal is to implement simple calculator which uses fluent syntax:<br>\n                </p>\n                <pre>                    <code>\n    Calc.new.one.plus.two # Should return 3\n\n    Calc.new.five.minus.six # Should return ­1\n\n    Calc.new.seven.times.two # Should return 14\n\n    Calc.new.nine.divided_by.three # Should return 3\n                    </code>\n                </pre>\n                <p>\n                    There are only four operations that are supported (plus, minus, times, divided_by) and 10 digits (zero, one, two, three, four, five, six, seven, eight, nine).<br>\n                    Each calculation consists of one operation only.\n                </p>\n            </div>\n        </div>\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8 text-center\">\n                <button class=\"btn btn-lg btn-success\" @click=\"showCode(1)\" role=\"button\">Show My Answer!</button>\n            </div>\n        </div>\n\n\n        <div class=\"row\" v-show=\"showA1\" transition=\"fade\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Answer to Question 1:</h3>\n                <pre>                    <code>\nclass Fixnum\n  def plus;       Calc.new.set_op(:+, self); end\n  def minus;      Calc.new.set_op(:-, self); end\n  def times;      Calc.new.set_op(:*, self); end\n  def divided_by; Calc.new.set_op(:/, self); end\nend\n\nclass Calc\n  def initialize\n    @value = 0\n    @op = :+\n  end\n\n  def set_op(op, value)\n    @op = op\n    @value = value\n\n    self\n  end\n\n  def op_with(n)\n    @value.send(@op, n)\n  end\n\n  def zero;  op_with(0); end\n  def one;   op_with(1); end\n  def two;   op_with(2); end\n  def three; op_with(3); end\n  def four;  op_with(4); end\n  def five;  op_with(5); end\n  def six;   op_with(6); end\n  def seven; op_with(7); end\n  def eight; op_with(8); end\n  def nine;  op_with(9); end\nend\n                    </code>\n                </pre>\n            </div>\n        </div>\n\n\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Question 2:</h3>\n                <p>\n                    There is a secret string which is unknown to you. Given a collection of random triplets from the\n                    string, recover the original string.<br>\n\n                    A triplet here is defined as a sequence of three letters such that each letter occurs somewhere\n                    before the next in the given string. \"whi\" is a triplet for the string \"whatisup\".<br>\n\n                    As a simplification, you may assume that no letter occurs more than once in the secret string.<br>\n\n                    You can assume nothing about the triplets given to you other than that they are valid triplets and\n                    that they contain sufficient information to deduce the original string. In particular, this means that\n                    the secret string will never contain letters that do not occur in one of the triplets given to you. <br>\n                </p>\n                <pre>                    <code>\n    secret_1 = \"whatisup\"\n    triplets_1 = [\n        ['t','u','p'],\n        ['w','h','i'],\n        ['t','s','u'],\n        ['a','t','s'],\n        ['h','a','p'],\n        ['t','i','s'],\n        ['w','h','s']\n    ]\n\n    Test.assert_equals(recover_secret(triplets_1), secret_1)\n                    </code>\n                </pre>\n            </div>\n        </div>\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8 text-center\">\n                <button class=\"btn btn-lg btn-success\" @click=\"showCode(2)\" role=\"button\">Show My Answer!</button>\n            </div>\n        </div>\n\n        <div class=\"row\" v-show=\"showA2\" transition=\"fade\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Answer to Question 2:</h3>\n                <pre>                    <code>\nCode thingz here\n                    </code>\n                </pre>\n            </div>\n        </div>\n        <div class=\"row\" v-show=\"showA2\" transition=\"fade\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8 text-center\">\n                <button class=\"btn btn-lg btn-success\" @click=\"decipherTriplets\" role=\"button\">Run My Answer!</button>\n            </div>\n        </div>\n    </div>\n"
 if (module.hot) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
