@@ -153,6 +153,7 @@
         //Our "goal" is the path with the length equal to the number of nodes in our graph
         //We can make this recursive for fun
         var path = longestPathInit(letterGraph, starting_node);
+        console.log(path);
         return path.printSecret();
     }
 
@@ -161,7 +162,7 @@
         this.forEach(function(node){
             msg.push(node.name);
         });
-        return msg.reverse();
+        return msg.reverse().join('');
     };
 
     Array.prototype.containsNode = function(name) {
@@ -177,8 +178,7 @@
     function longestPathInit(graph, startNode) {
         var path = [];
         function longestPath(graph, node) {
-            if (path.length != graph.node_list.length){
-                console.log("we've hit the base case");
+            if (path.length == graph.node_list.length) {
                 return path;
             } else {
                 //trim anything that's not needed
@@ -187,11 +187,10 @@
                 }
                 path.push(node);
                 for (var i = 0; i < node.edge_list_parents.length; i++) {
-                    //If is here to stop array from going out of bounds to do weird things when we hit the final letter
-                    if (node.edge_list_parents.length != 0 ) {
-                        node.edge_list_parents[i].previous = node;
-                        longestPath(graph, node.edge_list_parents[i]);
-                    }
+                    //We could optimize this with some tail call completion down the road.
+                    node.edge_list_parents[i].previous = node;
+                    longestPath(graph, node.edge_list_parents[i]);
+
                 }
             }
         }
@@ -321,7 +320,6 @@
         var path = [];
         function longestPath(graph, node) {
             if (path.length == graph.node_list.length) {
-                console.log("we've hit the base case");
                 return path;
             } else {
                 //trim anything that's not needed
@@ -330,6 +328,7 @@
                 }
                 path.push(node);
                 for (var i = 0; i < node.edge_list_parents.length; i++) {
+                    //We could optimize this with some tail call completion down the road.
                     node.edge_list_parents[i].previous = node;
                     longestPath(graph, node.edge_list_parents[i]);
 
@@ -422,7 +421,7 @@
                     ['w','h','s'],
                     ['h','u','p']
                 ];
-                console.log(recover_secret(triplets_1));
+                alert(recover_secret(triplets_1));
             }
         }
     };
