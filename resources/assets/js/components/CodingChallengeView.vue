@@ -43,41 +43,41 @@
                 <h3>Answer to Question 1:</h3>
                 <pre>
                     <code>
-class Fixnum
-  def plus;       Calc.new.set_op(:+, self); end
-  def minus;      Calc.new.set_op(:-, self); end
-  def times;      Calc.new.set_op(:*, self); end
-  def divided_by; Calc.new.set_op(:/, self); end
-end
+    class Fixnum
+      def plus;       Calc.new.set_op(:+, self); end
+      def minus;      Calc.new.set_op(:-, self); end
+      def times;      Calc.new.set_op(:*, self); end
+      def divided_by; Calc.new.set_op(:/, self); end
+    end
 
-class Calc
-  def initialize
-    @value = 0
-    @op = :+
-  end
+    class Calc
+      def initialize
+        @value = 0
+        @op = :+
+      end
 
-  def set_op(op, value)
-    @op = op
-    @value = value
+      def set_op(op, value)
+        @op = op
+        @value = value
 
-    self
-  end
+        self
+      end
 
-  def op_with(n)
-    @value.send(@op, n)
-  end
+      def op_with(n)
+        @value.send(@op, n)
+      end
 
-  def zero;  op_with(0); end
-  def one;   op_with(1); end
-  def two;   op_with(2); end
-  def three; op_with(3); end
-  def four;  op_with(4); end
-  def five;  op_with(5); end
-  def six;   op_with(6); end
-  def seven; op_with(7); end
-  def eight; op_with(8); end
-  def nine;  op_with(9); end
-end
+      def zero;  op_with(0); end
+      def one;   op_with(1); end
+      def two;   op_with(2); end
+      def three; op_with(3); end
+      def four;  op_with(4); end
+      def five;  op_with(5); end
+      def six;   op_with(6); end
+      def seven; op_with(7); end
+      def eight; op_with(8); end
+      def nine;  op_with(9); end
+    end
                     </code>
                 </pre>
             </div>
@@ -132,7 +132,123 @@ end
                 <h3>Answer to Question 2:</h3>
                 <pre>
                     <code>
-Code thingz here
+    function recover_secret(triplets) {
+        //Construct tree graph
+        var letterGraph = new Graph();
+        triplets.forEach(function(triplet) {
+            for (var i = 0; i < triplet.length-1; i++) {
+                letterGraph.addEdge(triplet[i], triplet[i+1])
+            }
+        });
+
+        //Find longest path starting from the back of the string, as last letter will have no children
+        var starting_node = '';
+        letterGraph.node_list.forEach(function(node) {
+            if(!node.edge_list_children.length) {
+                starting_node = node;
+            }
+        });
+
+        //Now we have the tree root, we can do a "reverse" dfs for longest path
+        //Our "goal" is the path with the length equal to the number of nodes in our graph
+        //We can make this recursive for fun
+        var path = longestPathInit(letterGraph, starting_node);
+        return path.printSecret();
+    }
+
+    Array.prototype.printSecret = function() {
+        var msg = [];
+        this.forEach(function(node){
+            msg.push(node.name);
+        });
+        return msg.reverse();
+    };
+
+    Array.prototype.containsNode = function(name) {
+        var i = this.length;
+        while (i--) {
+            if (this[i].name === name) {
+                return this[i];
+            }
+        }
+        return false;
+    };
+
+    function longestPathInit(graph, startNode) {
+        var path = [];
+        function longestPath(graph, node) {
+            if (path.length != graph.node_list.length){
+                console.log("we've hit the base case");
+                return path;
+            } else {
+                //trim anything that's not needed
+                if(node.previous != ''){
+                    path.length = path.indexOf(node.previous) + 1;
+                }
+                path.push(node);
+                for (var i = 0; i < node.edge_list_parents.length; i++) {
+                    //If is here to stop array from going out of bounds to do weird things when we hit the final letter
+                    if (node.edge_list_parents.length != 0 ) {
+                        node.edge_list_parents[i].previous = node;
+                        longestPath(graph, node.edge_list_parents[i]);
+                    }
+                }
+            }
+        }
+        longestPath(graph, startNode);
+        return path;
+    }
+
+    var Node = function(name) {
+        this.edge_list_children = [];
+        this.edge_list_parents = [];
+        this.name = name;
+        this.previous = '';
+    };
+
+    Node.prototype.addChildEdge = function(end){
+        this.edge_list_children.push(end);
+    };
+    Node.prototype.addParentEdge = function(start){
+        this.edge_list_parents.push(start);
+    };
+
+    var Graph = function(){
+        this.node_list = [];
+    };
+
+    //We want a one way graph, and each letter only appears once
+    Graph.prototype.addEdge = function(start,end){
+        var first = this.node_list.containsNode(start);
+        var second = this.node_list.containsNode(end);
+
+        if( (!first) || (!second) ){
+            if( !first ){
+                first = new Node(start);
+                this.node_list.push(first);
+            }
+            if( !second ){
+                second = new Node(end);
+                this.node_list.push(second);
+            }
+        }
+        //get start node
+        var i = this.node_list.length;
+        while (i--) {
+            if (this.node_list[i].name === start && !this.node_list[i].edge_list_children.containsNode(second.name)) {
+                this.node_list[i].addChildEdge(second);
+                break;
+            }
+        }
+        //get start node
+        var j = this.node_list.length;
+        while (j--) {
+            if (this.node_list[j].name === end && !this.node_list[j].edge_list_parents.containsNode(first.name)) {
+                this.node_list[j].addParentEdge(first);
+                break;
+            }
+        }
+    };
                     </code>
                 </pre>
             </div>
@@ -159,7 +275,6 @@ Code thingz here
 <script>
 
     function recover_secret(triplets) {
-
         //Construct tree graph
         var letterGraph = new Graph();
         triplets.forEach(function(triplet) {
@@ -167,7 +282,6 @@ Code thingz here
                 letterGraph.addEdge(triplet[i], triplet[i+1])
             }
         });
-        //letterGraph.printNodes();
 
         //Find longest path starting from the back of the string, as last letter will have no children
         var starting_node = '';
@@ -177,39 +291,60 @@ Code thingz here
             }
         });
 
-        //Now we have the tree root, we can do a "reverse" dfs
+        //Now we have the tree root, we can do a "reverse" dfs for longest path
         //Our "goal" is the path with the length equal to the number of nodes in our graph
         //We can make this recursive for fun
-        var path = [];
-        var longestPath = dfs(letterGraph, starting_node, path);
-
-        return longestPath.join('');
+        var path = longestPathInit(letterGraph, starting_node);
+        console.log(path);
+        return path.printSecret();
     }
+
+    Array.prototype.printSecret = function() {
+        var msg = [];
+        this.forEach(function(node){
+            msg.push(node.name);
+        });
+        return msg.reverse().join('');
+    };
 
     Array.prototype.containsNode = function(name) {
         var i = this.length;
         while (i--) {
             if (this[i].name === name) {
-                return true;
+                return this[i];
             }
         }
         return false;
     };
 
-    Array.prototype.contains = function(name) {
-        var i = this.length;
-        while (i--) {
-            if (this[i] === name) {
-                return true;
+    function longestPathInit(graph, startNode) {
+        var path = [];
+        function longestPath(graph, node) {
+            if (path.length == graph.node_list.length) {
+                console.log("we've hit the base case");
+                return path;
+            } else {
+                //trim anything that's not needed
+                if(node.previous != ''){
+                    path.length = path.indexOf(node.previous) + 1;
+                }
+                path.push(node);
+                for (var i = 0; i < node.edge_list_parents.length; i++) {
+                    node.edge_list_parents[i].previous = node;
+                    longestPath(graph, node.edge_list_parents[i]);
+
+                }
             }
         }
-        return false;
-    };
+        longestPath(graph, startNode);
+        return path;
+    }
 
     var Node = function(name) {
         this.edge_list_children = [];
         this.edge_list_parents = [];
         this.name = name;
+        this.previous = '';
     };
 
     Node.prototype.addChildEdge = function(end){
@@ -227,69 +362,34 @@ Code thingz here
     Graph.prototype.addEdge = function(start,end){
         var first = this.node_list.containsNode(start);
         var second = this.node_list.containsNode(end);
-        if(first){
-            //get start node
-            var i = this.node_list.length;
-            while (i--) {
-                if (this.node_list[i].name === start && !this.node_list[i].edge_list_children.contains(end)) {
-                    this.node_list[i].addChildEdge(end);
-                    break;
-                }
-            }
-        }
-        if(second){
-            //get start node
-            var i = this.node_list.length;
-            while (i--) {
-                if (this.node_list[i].name === end && !this.node_list[i].edge_list_parents.contains(start)) {
-                    this.node_list[i].addParentEdge(start);
-                    break;
-                }
-            }
-        }
 
         if( (!first) || (!second) ){
             if( !first ){
-                var node = new Node(start);
-                node.addChildEdge(end);
-                this.node_list.push(node);
+                first = new Node(start);
+                this.node_list.push(first);
             }
             if( !second ){
-                var node = new Node(end);
-                node.addParentEdge(start);
-                this.node_list.push(node);
+                second = new Node(end);
+                this.node_list.push(second);
+            }
+        }
+        //get start node
+        var i = this.node_list.length;
+        while (i--) {
+            if (this.node_list[i].name === start && !this.node_list[i].edge_list_children.containsNode(second.name)) {
+                this.node_list[i].addChildEdge(second);
+                break;
+            }
+        }
+        //get start node
+        var j = this.node_list.length;
+        while (j--) {
+            if (this.node_list[j].name === end && !this.node_list[j].edge_list_parents.containsNode(first.name)) {
+                this.node_list[j].addParentEdge(first);
+                break;
             }
         }
     };
-
-    Graph.prototype.printNodes = function(){
-        for(var i = 0;i < this.node_list.length;i++){
-            console.log(this.node_list[i].name +":");
-            console.log("parents: " + this.node_list[i].edge_list_parents);
-            console.log("children: " + this.node_list[i].edge_list_children);
-        }
-    };
-
-    function dfs(graph, node, path) {
-        path.push(node.name);
-        console.log("currently visiting: " + node.name);
-        console.log("path so far: " + path);
-        //We are at the bottom
-        if(node.edge_list_parents == 0 ) {
-            console.log('hit a dead end, it could be the solution');
-            return path;
-        } else {
-            node.edge_list_parents.forEach(function(parentName) {
-                var parentNode = null;
-                graph.node_list.forEach(function(nodeInstance) {
-                    if(nodeInstance.name === parentName) {
-                        parentNode = nodeInstance;
-                    }
-                });
-                dfs(graph, parentNode, path);
-            });
-        }
-    }
 
     export default {
         props: {
@@ -319,7 +419,8 @@ Code thingz here
                     ['a','t','s'],
                     ['h','a','p'],
                     ['t','i','s'],
-                    ['w','h','s']
+                    ['w','h','s'],
+                    ['h','u','p']
                 ];
                 console.log(recover_secret(triplets_1));
             }

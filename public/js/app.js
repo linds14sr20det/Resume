@@ -41209,7 +41209,6 @@ Object.defineProperty(exports, "__esModule", {
 
 
 function recover_secret(triplets) {
-
     //Construct tree graph
     var letterGraph = new Graph();
     triplets.forEach(function (triplet) {
@@ -41217,7 +41216,6 @@ function recover_secret(triplets) {
             letterGraph.addEdge(triplet[i], triplet[i + 1]);
         }
     });
-    //letterGraph.printNodes();
 
     //Find longest path starting from the back of the string, as last letter will have no children
     var starting_node = '';
@@ -41227,39 +41225,59 @@ function recover_secret(triplets) {
         }
     });
 
-    //Now we have the tree root, we can do a "reverse" dfs
+    //Now we have the tree root, we can do a "reverse" dfs for longest path
     //Our "goal" is the path with the length equal to the number of nodes in our graph
     //We can make this recursive for fun
-    var path = [];
-    var longestPath = dfs(letterGraph, starting_node, path);
-
-    return longestPath.join('');
+    var path = longestPathInit(letterGraph, starting_node);
+    console.log(path);
+    return path.printSecret();
 }
+
+Array.prototype.printSecret = function () {
+    var msg = [];
+    this.forEach(function (node) {
+        msg.push(node.name);
+    });
+    return msg.reverse().join('');
+};
 
 Array.prototype.containsNode = function (name) {
     var i = this.length;
     while (i--) {
         if (this[i].name === name) {
-            return true;
+            return this[i];
         }
     }
     return false;
 };
 
-Array.prototype.contains = function (name) {
-    var i = this.length;
-    while (i--) {
-        if (this[i] === name) {
-            return true;
+function longestPathInit(graph, startNode) {
+    var path = [];
+    function longestPath(graph, node) {
+        if (path.length == graph.node_list.length) {
+            console.log("we've hit the base case");
+            return path;
+        } else {
+            //trim anything that's not needed
+            if (node.previous != '') {
+                path.length = path.indexOf(node.previous) + 1;
+            }
+            path.push(node);
+            for (var i = 0; i < node.edge_list_parents.length; i++) {
+                node.edge_list_parents[i].previous = node;
+                longestPath(graph, node.edge_list_parents[i]);
+            }
         }
     }
-    return false;
-};
+    longestPath(graph, startNode);
+    return path;
+}
 
 var Node = function Node(name) {
     this.edge_list_children = [];
     this.edge_list_parents = [];
     this.name = name;
+    this.previous = '';
 };
 
 Node.prototype.addChildEdge = function (end) {
@@ -41277,69 +41295,34 @@ var Graph = function Graph() {
 Graph.prototype.addEdge = function (start, end) {
     var first = this.node_list.containsNode(start);
     var second = this.node_list.containsNode(end);
-    if (first) {
-        //get start node
-        var i = this.node_list.length;
-        while (i--) {
-            if (this.node_list[i].name === start && !this.node_list[i].edge_list_children.contains(end)) {
-                this.node_list[i].addChildEdge(end);
-                break;
-            }
-        }
-    }
-    if (second) {
-        //get start node
-        var i = this.node_list.length;
-        while (i--) {
-            if (this.node_list[i].name === end && !this.node_list[i].edge_list_parents.contains(start)) {
-                this.node_list[i].addParentEdge(start);
-                break;
-            }
-        }
-    }
 
     if (!first || !second) {
         if (!first) {
-            var node = new Node(start);
-            node.addChildEdge(end);
-            this.node_list.push(node);
+            first = new Node(start);
+            this.node_list.push(first);
         }
         if (!second) {
-            var node = new Node(end);
-            node.addParentEdge(start);
-            this.node_list.push(node);
+            second = new Node(end);
+            this.node_list.push(second);
+        }
+    }
+    //get start node
+    var i = this.node_list.length;
+    while (i--) {
+        if (this.node_list[i].name === start && !this.node_list[i].edge_list_children.containsNode(second.name)) {
+            this.node_list[i].addChildEdge(second);
+            break;
+        }
+    }
+    //get start node
+    var j = this.node_list.length;
+    while (j--) {
+        if (this.node_list[j].name === end && !this.node_list[j].edge_list_parents.containsNode(first.name)) {
+            this.node_list[j].addParentEdge(first);
+            break;
         }
     }
 };
-
-Graph.prototype.printNodes = function () {
-    for (var i = 0; i < this.node_list.length; i++) {
-        console.log(this.node_list[i].name + ":");
-        console.log("parents: " + this.node_list[i].edge_list_parents);
-        console.log("children: " + this.node_list[i].edge_list_children);
-    }
-};
-
-function dfs(graph, node, path) {
-    path.push(node.name);
-    console.log("currently visiting: " + node.name);
-    console.log("path so far: " + path);
-    //We are at the bottom
-    if (node.edge_list_parents == 0) {
-        console.log('hit a dead end, it could be the solution');
-        return path;
-    } else {
-        node.edge_list_parents.forEach(function (parentName) {
-            var parentNode = null;
-            graph.node_list.forEach(function (nodeInstance) {
-                if (nodeInstance.name === parentName) {
-                    parentNode = nodeInstance;
-                }
-            });
-            dfs(graph, parentNode, path);
-        });
-    }
-}
 
 exports.default = {
     props: {
@@ -41361,13 +41344,13 @@ exports.default = {
         },
         decipherTriplets: function decipherTriplets() {
             secret_1 = "whatisup";
-            triplets_1 = [['t', 'u', 'p'], ['w', 'h', 'i'], ['t', 's', 'u'], ['a', 't', 's'], ['h', 'a', 'p'], ['t', 'i', 's'], ['w', 'h', 's']];
+            triplets_1 = [['t', 'u', 'p'], ['w', 'h', 'i'], ['t', 's', 'u'], ['a', 't', 's'], ['h', 'a', 'p'], ['t', 'i', 's'], ['w', 'h', 's'], ['h', 'u', 'p']];
             console.log(recover_secret(triplets_1));
         }
     }
 };
 if (module.exports.__esModule) module.exports = module.exports.default
-;(typeof module.exports === "function"? module.exports.options: module.exports).template = "\n    <div class=\"container\" transition=\"fade\">\n        <div class=\"jumbotron\">\n            <h1>Coding Challenge Q's</h1>\n            <p class=\"lead\">Here's the latest coding interview questions I've been asked to solve.</p>\n        </div>\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Question 1:</h3>\n                <p>\n                    The Kata is inspired by Calculating with Functions Kata for JavaScript.<br>\n                    The goal is to implement simple calculator which uses fluent syntax:<br>\n                </p>\n                <pre>                    <code>\n    Calc.new.one.plus.two # Should return 3\n\n    Calc.new.five.minus.six # Should return ­1\n\n    Calc.new.seven.times.two # Should return 14\n\n    Calc.new.nine.divided_by.three # Should return 3\n                    </code>\n                </pre>\n                <p>\n                    There are only four operations that are supported (plus, minus, times, divided_by) and 10 digits (zero, one, two, three, four, five, six, seven, eight, nine).<br>\n                    Each calculation consists of one operation only.\n                </p>\n            </div>\n        </div>\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8 text-center\">\n                <button class=\"btn btn-lg btn-success\" @click=\"showCode(1)\" role=\"button\">Show My Answer!</button>\n            </div>\n        </div>\n\n\n        <div class=\"row\" v-show=\"showA1\" transition=\"fade\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Answer to Question 1:</h3>\n                <pre>                    <code>\nclass Fixnum\n  def plus;       Calc.new.set_op(:+, self); end\n  def minus;      Calc.new.set_op(:-, self); end\n  def times;      Calc.new.set_op(:*, self); end\n  def divided_by; Calc.new.set_op(:/, self); end\nend\n\nclass Calc\n  def initialize\n    @value = 0\n    @op = :+\n  end\n\n  def set_op(op, value)\n    @op = op\n    @value = value\n\n    self\n  end\n\n  def op_with(n)\n    @value.send(@op, n)\n  end\n\n  def zero;  op_with(0); end\n  def one;   op_with(1); end\n  def two;   op_with(2); end\n  def three; op_with(3); end\n  def four;  op_with(4); end\n  def five;  op_with(5); end\n  def six;   op_with(6); end\n  def seven; op_with(7); end\n  def eight; op_with(8); end\n  def nine;  op_with(9); end\nend\n                    </code>\n                </pre>\n            </div>\n        </div>\n\n\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Question 2:</h3>\n                <p>\n                    There is a secret string which is unknown to you. Given a collection of random triplets from the\n                    string, recover the original string.<br>\n\n                    A triplet here is defined as a sequence of three letters such that each letter occurs somewhere\n                    before the next in the given string. \"whi\" is a triplet for the string \"whatisup\".<br>\n\n                    As a simplification, you may assume that no letter occurs more than once in the secret string.<br>\n\n                    You can assume nothing about the triplets given to you other than that they are valid triplets and\n                    that they contain sufficient information to deduce the original string. In particular, this means that\n                    the secret string will never contain letters that do not occur in one of the triplets given to you. <br>\n                </p>\n                <pre>                    <code>\n    secret_1 = \"whatisup\"\n    triplets_1 = [\n        ['t','u','p'],\n        ['w','h','i'],\n        ['t','s','u'],\n        ['a','t','s'],\n        ['h','a','p'],\n        ['t','i','s'],\n        ['w','h','s']\n    ]\n\n    Test.assert_equals(recover_secret(triplets_1), secret_1)\n                    </code>\n                </pre>\n            </div>\n        </div>\n        <div class=\"row\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8 text-center\">\n                <button class=\"btn btn-lg btn-success\" @click=\"showCode(2)\" role=\"button\">Show My Answer!</button>\n            </div>\n        </div>\n\n        <div class=\"row\" v-show=\"showA2\" transition=\"fade\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8\">\n                <h3>Answer to Question 2:</h3>\n                <pre>                    <code>\nCode thingz here\n                    </code>\n                </pre>\n            </div>\n        </div>\n        <div class=\"row\" v-show=\"showA2\" transition=\"fade\">\n            <div class=\"col-lg-2\"></div>\n            <div class=\"col-lg-8 text-center\">\n                <button class=\"btn btn-lg btn-success\" @click=\"decipherTriplets\" role=\"button\">Run My Answer!</button>\n            </div>\n        </div>\n    </div>\n"
+;(typeof module.exports === "function"? module.exports.options: module.exports).template = "\n<div class=\"container\" transition=\"fade\">\n    <div class=\"jumbotron\">\n        <h1>Coding Challenge Q's</h1>\n        <p class=\"lead\">Here's the latest coding interview questions I've been asked to solve.</p>\n    </div>\n    <div class=\"row\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8\">\n            <h3>Question 1:</h3>\n            <p>\n                The Kata is inspired by Calculating with Functions Kata for JavaScript.<br>\n                The goal is to implement simple calculator which uses fluent syntax:<br>\n            </p>\n            <pre>                    <code>\nCalc.new.one.plus.two # Should return 3\n\nCalc.new.five.minus.six # Should return ­1\n\nCalc.new.seven.times.two # Should return 14\n\nCalc.new.nine.divided_by.three # Should return 3\n                </code>\n            </pre>\n            <p>\n                There are only four operations that are supported (plus, minus, times, divided_by) and 10 digits (zero, one, two, three, four, five, six, seven, eight, nine).<br>\n                Each calculation consists of one operation only.\n            </p>\n        </div>\n    </div>\n    <div class=\"row\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8 text-center\">\n            <button class=\"btn btn-lg btn-success\" @click=\"showCode(1)\" role=\"button\">Show My Answer!</button>\n        </div>\n    </div>\n\n\n    <div class=\"row\" v-show=\"showA1\" transition=\"fade\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8\">\n            <h3>Answer to Question 1:</h3>\n            <pre>                    <code>\nclass Fixnum\n  def plus;       Calc.new.set_op(:+, self); end\n  def minus;      Calc.new.set_op(:-, self); end\n  def times;      Calc.new.set_op(:*, self); end\n  def divided_by; Calc.new.set_op(:/, self); end\nend\n\nclass Calc\n  def initialize\n    @value = 0\n    @op = :+\n  end\n\n  def set_op(op, value)\n    @op = op\n    @value = value\n\n    self\n  end\n\n  def op_with(n)\n    @value.send(@op, n)\n  end\n\n  def zero;  op_with(0); end\n  def one;   op_with(1); end\n  def two;   op_with(2); end\n  def three; op_with(3); end\n  def four;  op_with(4); end\n  def five;  op_with(5); end\n  def six;   op_with(6); end\n  def seven; op_with(7); end\n  def eight; op_with(8); end\n  def nine;  op_with(9); end\nend\n                </code>\n            </pre>\n        </div>\n    </div>\n\n\n    <div class=\"row\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8\">\n            <h3>Question 2:</h3>\n            <p>\n                There is a secret string which is unknown to you. Given a collection of random triplets from the\n                string, recover the original string.<br>\n\n                A triplet here is defined as a sequence of three letters such that each letter occurs somewhere\n                before the next in the given string. \"whi\" is a triplet for the string \"whatisup\".<br>\n\n                As a simplification, you may assume that no letter occurs more than once in the secret string.<br>\n\n                You can assume nothing about the triplets given to you other than that they are valid triplets and\n                that they contain sufficient information to deduce the original string. In particular, this means that\n                the secret string will never contain letters that do not occur in one of the triplets given to you. <br>\n            </p>\n            <pre>                    <code>\nsecret_1 = \"whatisup\"\ntriplets_1 = [\n    ['t','u','p'],\n    ['w','h','i'],\n    ['t','s','u'],\n    ['a','t','s'],\n    ['h','a','p'],\n    ['t','i','s'],\n    ['w','h','s']\n]\n\nTest.assert_equals(recover_secret(triplets_1), secret_1)\n                </code>\n            </pre>\n        </div>\n    </div>\n    <div class=\"row\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8 text-center\">\n            <button class=\"btn btn-lg btn-success\" @click=\"showCode(2)\" role=\"button\">Show My Answer!</button>\n        </div>\n    </div>\n\n    <div class=\"row\" v-show=\"showA2\" transition=\"fade\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8\">\n            <h3>Answer to Question 2:</h3>\n            <pre>                    <code>\nfunction recover_secret(triplets) {\n    //Construct tree graph\n    var letterGraph = new Graph();\n    triplets.forEach(function(triplet) {\n        for (var i = 0; i &lt; triplet.length-1; i++) {\n            letterGraph.addEdge(triplet[i], triplet[i+1])\n        }\n    });\n\n    //Find longest path starting from the back of the string, as last letter will have no children\n    var starting_node = '';\n    letterGraph.node_list.forEach(function(node) {\n        if(!node.edge_list_children.length) {\n            starting_node = node;\n        }\n    });\n\n    //Now we have the tree root, we can do a \"reverse\" dfs for longest path\n    //Our \"goal\" is the path with the length equal to the number of nodes in our graph\n    //We can make this recursive for fun\n    var path = longestPathInit(letterGraph, starting_node);\n    return path.printSecret();\n}\n\nArray.prototype.printSecret = function() {\n    var msg = [];\n    this.forEach(function(node){\n        msg.push(node.name);\n    });\n    return msg.reverse();\n};\n\nArray.prototype.containsNode = function(name) {\n    var i = this.length;\n    while (i--) {\n        if (this[i].name === name) {\n            return this[i];\n        }\n    }\n    return false;\n};\n\nfunction longestPathInit(graph, startNode) {\n    var path = [];\n    function longestPath(graph, node) {\n        if (path.length != graph.node_list.length){\n            console.log(\"we've hit the base case\");\n            return path;\n        } else {\n            //trim anything that's not needed\n            if(node.previous != ''){\n                path.length = path.indexOf(node.previous) + 1;\n            }\n            path.push(node);\n            for (var i = 0; i &lt; node.edge_list_parents.length; i++) {\n                //If is here to stop array from going out of bounds to do weird things when we hit the final letter\n                if (node.edge_list_parents.length != 0 ) {\n                    node.edge_list_parents[i].previous = node;\n                    longestPath(graph, node.edge_list_parents[i]);\n                }\n            }\n        }\n    }\n    longestPath(graph, startNode);\n    return path;\n}\n\nvar Node = function(name) {\n    this.edge_list_children = [];\n    this.edge_list_parents = [];\n    this.name = name;\n    this.previous = '';\n};\n\nNode.prototype.addChildEdge = function(end){\n    this.edge_list_children.push(end);\n};\nNode.prototype.addParentEdge = function(start){\n    this.edge_list_parents.push(start);\n};\n\nvar Graph = function(){\n    this.node_list = [];\n};\n\n//We want a one way graph, and each letter only appears once\nGraph.prototype.addEdge = function(start,end){\n    var first = this.node_list.containsNode(start);\n    var second = this.node_list.containsNode(end);\n\n    if( (!first) || (!second) ){\n        if( !first ){\n            first = new Node(start);\n            this.node_list.push(first);\n        }\n        if( !second ){\n            second = new Node(end);\n            this.node_list.push(second);\n        }\n    }\n    //get start node\n    var i = this.node_list.length;\n    while (i--) {\n        if (this.node_list[i].name === start &amp;&amp; !this.node_list[i].edge_list_children.containsNode(second.name)) {\n            this.node_list[i].addChildEdge(second);\n            break;\n        }\n    }\n    //get start node\n    var j = this.node_list.length;\n    while (j--) {\n        if (this.node_list[j].name === end &amp;&amp; !this.node_list[j].edge_list_parents.containsNode(first.name)) {\n            this.node_list[j].addParentEdge(first);\n            break;\n        }\n    }\n};\n                </code>\n            </pre>\n        </div>\n    </div>\n    <div class=\"row\" v-show=\"showA2\" transition=\"fade\">\n        <div class=\"col-lg-2\"></div>\n        <div class=\"col-lg-8 text-center\">\n            <button class=\"btn btn-lg btn-success\" @click=\"decipherTriplets\" role=\"button\">Run My Answer!</button>\n        </div>\n    </div>\n</div>\n"
 if (module.hot) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
