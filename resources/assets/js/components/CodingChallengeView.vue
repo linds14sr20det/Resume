@@ -1,8 +1,8 @@
 <template>
-    <div class="container" transition="fade">
+    <div class="container">
         <div class='jumbotron'>
             <h1>Coding Challenge Q's</h1>
-            <p class="lead">Here's the latest coding interview questions I've been asked to solve.</p>
+            <p class="lead">Here's the latest coding interview questions I've been asked to solve for Jobber.</p>
         </div>
         <div class="row">
             <div class="col-lg-2"></div>

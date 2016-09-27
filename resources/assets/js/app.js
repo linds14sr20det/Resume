@@ -14,26 +14,34 @@ require('./jquery');
  * the application, or feel free to tweak this setup for your needs.
  */
 
-import Vue from 'vue';
-import HomeView from './components/HomeView.vue';
-import AboutView from './components/AboutView.vue';
-import CodingChallengeView from './components/CodingChallengeView.vue';
+var Vue = require('vue');
+var VueRouter = require('vue-router');
+Vue.use(VueRouter);
 
-var app = new Vue({
-    el: 'body',
+var HomeView = require('./components/HomeView.vue');
+var AboutView = require('./components/AboutView.vue');
+var CodingChallengeView = require('./components/CodingChallengeView.vue');
+var FlappyBirdView = require('./components/FlappyBirdView.vue');
 
-    components: {
-        HomeView,
-        AboutView,
-        CodingChallengeView
+var router = new VueRouter();
+
+router.map({
+    '/': {
+        component: HomeView
     },
-    data: {
-        currentView: 'coding-challenge-view'//'home-view'
+    '/about': {
+        component: AboutView
     },
-    methods: {
-        changePage: function (newView) {
-            console.log(newView);
-            this.currentView = newView;
-        }
+    '/codingChallenge-5e5bc3d3-435c-49f6-b130-7d16cbea643f': {
+        component: CodingChallengeView
+    },
+    '/flappyBird': {
+        component: FlappyBirdView
     }
 });
+
+var App = Vue.extend({
+
+});
+
+router.start(App, 'body');
