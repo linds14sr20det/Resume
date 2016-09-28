@@ -38,8 +38,7 @@
 
 
         <div class='row' v-show="showA1" transition="fade">
-            <div class="col-lg-2"></div>
-            <div class="col-lg-8">
+            <div class="col-lg-6">
                 <h3>Answer to Question 1:</h3>
                 <pre>
                     <code>
@@ -80,6 +79,26 @@
     end
                     </code>
                 </pre>
+            </div>
+            <div class="col-lg-6">
+                <h3>Explanation:</h3>
+                <p>
+                    Initially I sought to solve this using javascript so I could demo the solution in the browser.
+                    However it quickly became clear that you cannot assign the keyword `new` as a accessor property of a
+                    prototype. Ruby it was.
+                </p>
+                <p>
+                    This solution relies on method chaining. The trick is the named function representing numbers always
+                    carries out an operation. The `new` method in this case initializes the the operator to a + and the
+                    value to 0. This way when we call `Calc.new.one` we are immediately adding 1 + 0. Then the next
+                    method changes the operator if necessary before the final number method repeats the initial step,
+                    this time with the modified operator and with a different initial value.
+                </p>
+                <p>
+                    I'm running a laravel setup on this box, so there isn't a ruby interpreter, so I can't show you this
+                    code running. But if you head to <a href="http://tryruby.org/levels/1/challenges/0">http://tryruby.org/levels/1/challenges/0</a>
+                    you can copy and paste the above code and see it in action.
+                </p>
             </div>
         </div>
 
@@ -127,8 +146,7 @@
         </div>
 
         <div class='row' v-show="showA2" transition="fade">
-            <div class="col-lg-2"></div>
-            <div class="col-lg-8">
+            <div class="col-lg-6">
                 <h3>Answer to Question 2:</h3>
                 <pre>
                     <code>
@@ -250,6 +268,33 @@
     };
                     </code>
                 </pre>
+            </div>
+            <div class="col-lg-6">
+                <h3>Explanation:</h3>
+                <p>
+                    There is a lot of code here, but this problem is actually really simple.
+                </p>
+                <p>
+                    The key to this problem is to realize we have a graph problem. We will construct a graph of each letter
+                    and map the edges as connections to it's children. So for the triplet [t,u,p] we will simply construct
+                    a graph of t->u->p. When we move to the next triplet, we won't duplicate any letters, as we know
+                    each letter only occurs once.
+                </p>
+                <p>
+                    Once we have our graph constructed we can deduce the first and last letters easily. The last letter
+                    will have no children, and the first will have no parents. The means we know our starting point and
+                    part of our base case.
+                </p>
+                <p>
+                    I mentioned base case as the next part requires us to do a recursive search. It's actually a longest
+                    path search in a directed acyclic graph. We know its the longest path, as each letter must occur once.
+                    Since each letter occurs in the graph once, we have to visit each node. This entails that the second
+                    part of our base case must be graph.nodes.length == path.length.
+                </p>
+                <p>
+                    After this search, we will have our string! You can scroll to the bottom and run this code in your
+                    browser if you'd like.
+                </p>
             </div>
         </div>
         <div class='row' v-show="showA2" transition="fade">
@@ -418,8 +463,7 @@
                     ['a','t','s'],
                     ['h','a','p'],
                     ['t','i','s'],
-                    ['w','h','s'],
-                    ['h','u','p']
+                    ['w','h','s']
                 ];
                 alert(recover_secret(triplets_1));
             }
