@@ -1,10 +1,18 @@
 <template>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <div class="container">
         <div class="jumbotron">
             <h2>Flappy Bird Clone (HTML5)</h2>
         </div>
         <div class="row text-center">
             <div class="col-lg-12">
+                <noscript>
+                    <p>For full functionality of this page it is necessary to enable JavaScript.
+                        Here are the <a href="http://www.enable-javascript.com/" target="_blank">
+                            instructions how to enable JavaScript in your web browser</a>.</p>
+                </noscript>
                 <canvas id="flappyBird"></canvas>
             </div>
         </div>
@@ -17,6 +25,10 @@
         </div>
     </div>
 </template>
+
+<style>
+
+</style>
 
 <script>
 

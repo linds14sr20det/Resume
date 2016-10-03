@@ -26,6 +26,7 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">BrowserGames <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a v-link="{ path: '/flappyBird'}">HTML5 Flappy Bird</a></li>
+                            <li>{{link_to('TestUnityPlayer', 'Work')}}</li>
                         </ul>
                     </li>
                 </ul>
